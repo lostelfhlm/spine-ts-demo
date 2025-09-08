@@ -1,0 +1,103 @@
+{
+  "skeleton": {
+    "hash": "5U6v4fMpBu8",
+    "spine": "4.1.24",
+    "x": -253,
+    "y": -246,
+    "width": 506,
+    "height": 492,
+    "images": "../../../img/phoDialogStone/",
+    "audio": "G:/共有ドライブ/すらら_英語学習_共有/デザイン/_デザイナー作業フォルダ/はやと/Spine/project/ver4.1.24/pho/../../../img/phoDialogStone"
+  },
+  "bones": [
+    { "name": "root", "color": "ff0000ff" },
+    { "name": "all_stone_bone", "parent": "root", "color": "6fff00ff" },
+    { "name": "Stone", "parent": "all_stone_bone", "color": "f7ff00ff" }
+  ],
+  "slots": [{ "name": "Stone", "bone": "Stone", "attachment": "Stone" }],
+  "skins": [
+    {
+      "name": "letter",
+      "attachments": {
+        "Stone": {
+          "Stone": { "name": "letterStone", "width": 506, "height": 492 }
+        }
+      }
+    },
+    {
+      "name": "listening",
+      "attachments": {
+        "Stone": {
+          "Stone": { "name": "listeningStone", "width": 512, "height": 512 }
+        }
+      }
+    },
+    {
+      "name": "song",
+      "attachments": {
+        "Stone": {
+          "Stone": { "name": "songStone", "width": 506, "height": 492 }
+        }
+      }
+    },
+    {
+      "name": "speaking",
+      "attachments": {
+        "Stone": {
+          "Stone": { "name": "speakingStone", "width": 512, "height": 512 }
+        }
+      }
+    },
+    {
+      "name": "story",
+      "attachments": {
+        "Stone": {
+          "Stone": { "name": "storyStone", "width": 506, "height": 492 }
+        }
+      }
+    },
+    {
+      "name": "trial",
+      "attachments": {
+        "Stone": {
+          "Stone": { "name": "trialStone", "width": 506, "height": 492 }
+        }
+      }
+    }
+  ],
+  "events": { "seStoneGet": {} },
+  "animations": {
+    "intro": {
+      "slots": {
+        "Stone": {
+          "rgba": [
+            { "color": "ffffff00", "curve": "stepped" },
+            {
+              "time": 0.2667,
+              "color": "ffffff00",
+              "curve": [
+                0.367, 1, 0.467, 1, 0.367, 1, 0.467, 1, 0.367, 1, 0.467, 1,
+                0.367, 0, 0.467, 1
+              ]
+            },
+            { "time": 0.5667, "color": "fffffffe" }
+          ]
+        }
+      },
+      "bones": {
+        "all_stone_bone": {
+          "scale": [
+            {
+              "time": 0.2667,
+              "curve": [0.342, 0.858, 0.532, 0.721, 0.342, 0.858, 0.532, 0.721]
+            },
+            { "time": 0.6667, "x": 0.75, "y": 0.75 },
+            { "time": 0.7667, "x": 0.8, "y": 0.8, "curve": "stepped" },
+            { "time": 3, "x": 0.8, "y": 0.8 }
+          ]
+        }
+      },
+      "events": [{ "name": "seStoneGet" }]
+    }
+  }
+}

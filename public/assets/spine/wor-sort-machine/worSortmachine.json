@@ -1,0 +1,451 @@
+{
+  "skeleton": {
+    "hash": "2Eitx29Bq6s",
+    "spine": "4.1.24",
+    "x": -960,
+    "y": -661.7,
+    "width": 1920,
+    "height": 1201.7,
+    "images": "../../../img/wor_generator/",
+    "audio": "G:/共有ドライブ/すらら_英語学習_共有/デザイン/_デザイナー作業フォルダ/はやと/Spine/project/wor"
+  },
+  "bones": [
+    { "name": "root", "color": "ff0000ff" },
+    { "name": "all_bone", "parent": "root", "color": "ff0000ff" },
+    {
+      "name": "furiwake_all_bone",
+      "parent": "all_bone",
+      "y": -450,
+      "color": "00ffeaff"
+    },
+    {
+      "name": "learned",
+      "parent": "furiwake_all_bone",
+      "x": 530,
+      "color": "00ffeaff"
+    },
+    { "name": "Wor_LearnedOff", "parent": "learned", "color": "00ffeaff" },
+    { "name": "Wor_LearnedOn", "parent": "learned", "color": "00ffeaff" },
+    {
+      "name": "lerning",
+      "parent": "furiwake_all_bone",
+      "x": -530,
+      "color": "00ffeaff"
+    },
+    { "name": "Wor_LearningOff", "parent": "lerning", "color": "00ffeaff" },
+    { "name": "Wor_LearningOn", "parent": "lerning", "color": "00ffeaff" },
+    { "name": "ball_all_bone", "parent": "root", "color": "ff0000ff" },
+    { "name": "greenball", "parent": "ball_all_bone", "color": "02ff00ff" },
+    { "name": "pinkball", "parent": "ball_all_bone", "color": "ff00aeff" },
+    {
+      "name": "greenball2",
+      "parent": "ball_all_bone",
+      "x": 530,
+      "y": -455.7,
+      "color": "02ff00ff"
+    },
+    {
+      "name": "pinkball2",
+      "parent": "ball_all_bone",
+      "x": -530,
+      "y": -455.7,
+      "color": "ff00aeff"
+    },
+    { "name": "greenparticle", "parent": "ball_all_bone", "color": "39ff00ff" },
+    { "name": "pinkparticle", "parent": "ball_all_bone", "color": "ff00f9ff" },
+    {
+      "name": "greenparticle2",
+      "parent": "ball_all_bone",
+      "x": 531.83,
+      "y": -457.88,
+      "color": "39ff00ff"
+    },
+    {
+      "name": "pinkparticle2",
+      "parent": "ball_all_bone",
+      "x": -526.14,
+      "y": -457.88,
+      "color": "ff00f9ff"
+    }
+  ],
+  "slots": [
+    { "name": "BG", "bone": "all_bone" },
+    { "name": "KARI_BG", "bone": "root" },
+    { "name": "greenball", "bone": "greenball", "attachment": "greenball" },
+    { "name": "pinkball", "bone": "pinkball", "attachment": "pinkball" },
+    { "name": "greenball2", "bone": "greenball2", "attachment": "greenball" },
+    { "name": "pinkball2", "bone": "pinkball2", "attachment": "pinkball" },
+    {
+      "name": "greenparticle2",
+      "bone": "greenparticle2",
+      "attachment": "greenparticle"
+    },
+    {
+      "name": "pinkparticle2",
+      "bone": "pinkparticle2",
+      "attachment": "pinkparticle"
+    },
+    {
+      "name": "Wor_LearnedOff",
+      "bone": "Wor_LearnedOff",
+      "attachment": "Wor_LearnedOff"
+    },
+    {
+      "name": "Wor_LearnedOn",
+      "bone": "Wor_LearnedOn",
+      "attachment": "Wor_LearnedOn"
+    },
+    {
+      "name": "Wor_LearningOff",
+      "bone": "Wor_LearningOff",
+      "attachment": "Wor_LearningOff"
+    },
+    {
+      "name": "Wor_LearningOn",
+      "bone": "Wor_LearningOn",
+      "attachment": "Wor_LearningOn"
+    },
+    { "name": "pinkball_path", "bone": "root", "attachment": "pinkball_path" },
+    {
+      "name": "greenball_path2",
+      "bone": "root",
+      "attachment": "greenball_path"
+    },
+    {
+      "name": "greenparticle",
+      "bone": "greenparticle",
+      "attachment": "greenparticle"
+    },
+    {
+      "name": "pinkparticle",
+      "bone": "pinkparticle",
+      "attachment": "pinkparticle"
+    }
+  ],
+  "path": [
+    {
+      "name": "greenball_path_pank",
+      "bones": ["greenball"],
+      "target": "greenball_path2"
+    },
+    {
+      "name": "pinkball_path_pink",
+      "order": 1,
+      "bones": ["pinkball"],
+      "target": "pinkball_path"
+    }
+  ],
+  "skins": [
+    {
+      "name": "default",
+      "attachments": {
+        "greenball": { "greenball": { "y": 0.5, "width": 412, "height": 413 } },
+        "greenball2": {
+          "greenball": { "y": 0.5, "width": 412, "height": 413 }
+        },
+        "greenball_path2": {
+          "greenball_path": {
+            "type": "path",
+            "lengths": [626.78, 1374.5, 2195.3],
+            "vertexCount": 9,
+            "vertices": [
+              -122.48, -189.02, -4.66, 0.8, 95.23, 161.73, 373.34, 313.7,
+              535.04, 242.3, 726.61, 157.71, 627.44, -215.5, 493.04, -444.4,
+              352.28, -684.13
+            ]
+          }
+        },
+        "greenparticle": { "greenparticle": { "width": 434, "height": 394 } },
+        "greenparticle2": { "greenparticle": { "width": 434, "height": 394 } },
+        "pinkball": {
+          "pinkball": { "x": 0.5, "y": 0.5, "width": 413, "height": 413 }
+        },
+        "pinkball2": {
+          "pinkball": { "x": 0.5, "y": 0.5, "width": 413, "height": 413 }
+        },
+        "pinkball_path": {
+          "pinkball_path": {
+            "type": "path",
+            "lengths": [626.78, 1374.5, 2195.3],
+            "vertexCount": 9,
+            "vertices": [
+              113.16, -189.02, -4.66, 0.8, -104.55, 161.73, -382.66, 313.7,
+              -544.36, 242.3, -735.94, 157.71, -636.76, -215.5, -502.36, -444.4,
+              -361.6, -684.13
+            ]
+          }
+        },
+        "pinkparticle": { "pinkparticle": { "width": 434, "height": 394 } },
+        "pinkparticle2": { "pinkparticle": { "width": 434, "height": 394 } },
+        "Wor_LearnedOff": { "Wor_LearnedOff": { "width": 421, "height": 152 } },
+        "Wor_LearnedOn": { "Wor_LearnedOn": { "width": 421, "height": 152 } },
+        "Wor_LearningOff": {
+          "Wor_LearningOff": { "width": 421, "height": 152 }
+        },
+        "Wor_LearningOn": { "Wor_LearningOn": { "width": 421, "height": 152 } }
+      }
+    }
+  ],
+  "events": { "eBoardOff": {}, "eBoardOn": {} },
+  "animations": {
+    "idle": {
+      "slots": {
+        "greenball": { "attachment": [{}] },
+        "greenball2": { "attachment": [{}] },
+        "greenparticle": { "attachment": [{}] },
+        "greenparticle2": { "attachment": [{}] },
+        "pinkball": { "attachment": [{}] },
+        "pinkball2": { "attachment": [{}] },
+        "pinkparticle": { "attachment": [{}] },
+        "pinkparticle2": { "attachment": [{}] },
+        "Wor_LearnedOn": { "attachment": [{}] },
+        "Wor_LearningOn": { "attachment": [{}] }
+      }
+    },
+    "learned": {
+      "slots": {
+        "greenball2": {
+          "rgba": [
+            { "time": 0.5, "color": "ffffffff" },
+            { "time": 0.8333, "color": "ffffff00" }
+          ],
+          "attachment": [{}, { "time": 0.5, "name": "greenball" }]
+        },
+        "greenparticle": {
+          "rgba": [
+            {
+              "time": 0.1,
+              "color": "ffffffff",
+              "curve": [
+                0.1, 1, 0.4, 1, 0.1, 1, 0.4, 1, 0.1, 1, 0.4, 1, 0.1, 0.4, 0.4, 0
+              ]
+            },
+            { "time": 0.5, "color": "ffffff00" }
+          ]
+        },
+        "greenparticle2": {
+          "rgba": [
+            {
+              "time": 0.5,
+              "color": "ffffffff",
+              "curve": [
+                0.518, 1, 0.75, 1, 0.518, 1, 0.75, 1, 0.518, 1, 0.75, 1, 0.518,
+                0.43, 0.75, 0.02
+              ]
+            },
+            { "time": 0.8333, "color": "ffffff00" }
+          ],
+          "attachment": [{}, { "time": 0.5, "name": "greenparticle" }]
+        },
+        "KARI_BG": { "attachment": [{}] },
+        "pinkball": { "attachment": [{}] },
+        "pinkball2": { "attachment": [{}] },
+        "pinkparticle": { "attachment": [{}] },
+        "pinkparticle2": { "attachment": [{}] },
+        "Wor_LearnedOn": {
+          "rgba": [
+            { "time": 0.8, "color": "ffffffff" },
+            { "time": 1.1667, "color": "ffffff00" }
+          ],
+          "attachment": [{}, { "time": 0.5, "name": "Wor_LearnedOn" }]
+        },
+        "Wor_LearningOn": { "attachment": [{}] }
+      },
+      "bones": {
+        "greenball": {
+          "scale": [
+            {
+              "x": 2.7,
+              "y": 2.7,
+              "curve": [0.113, 0.987, 0.355, 0.411, 0.113, 0.987, 0.355, 0.411]
+            },
+            { "time": 0.5, "x": 0.2, "y": 0.2 }
+          ]
+        },
+        "greenball2": {
+          "scale": [
+            {
+              "time": 0.5,
+              "curve": [0.5, 1.402, 0.75, 1.5, 0.5, 1.402, 0.75, 1.5]
+            },
+            { "time": 0.8333, "x": 1.5, "y": 1.5 }
+          ]
+        },
+        "learned": {
+          "scale": [
+            {
+              "time": 0.5,
+              "curve": [0.517, 1, 0.55, 1.2, 0.517, 1, 0.55, 1.2]
+            },
+            {
+              "time": 0.5667,
+              "x": 1.2,
+              "y": 1.2,
+              "curve": [0.592, 1.2, 0.642, 0.85, 0.592, 1.2, 0.642, 0.85]
+            },
+            {
+              "time": 0.6667,
+              "x": 0.85,
+              "y": 0.85,
+              "curve": [0.7, 0.85, 0.767, 1, 0.7, 0.85, 0.767, 1]
+            },
+            { "time": 0.8 }
+          ]
+        },
+        "greenparticle": {
+          "scale": [
+            {
+              "x": 0.5,
+              "y": 0.5,
+              "curve": [0, 1.709, 0.415, 1.974, 0, 1.709, 0.415, 1.974]
+            },
+            { "time": 0.5, "x": 2, "y": 2 }
+          ]
+        },
+        "greenparticle2": {
+          "scale": [
+            {
+              "time": 0.5,
+              "x": 0.5,
+              "y": 0.5,
+              "curve": [0.517, 1.176, 0.737, 1.469, 0.517, 1.176, 0.737, 1.469]
+            },
+            { "time": 0.8333, "x": 1.5, "y": 1.5 }
+          ]
+        }
+      },
+      "path": {
+        "greenball_path_pank": {
+          "position": [
+            { "curve": [0.115, 0.6756, 0.428, 0.952] },
+            { "time": 0.5, "value": 1 }
+          ]
+        }
+      },
+      "events": [{ "name": "eBoardOff" }]
+    },
+    "learning": {
+      "slots": {
+        "greenball": { "attachment": [{}] },
+        "greenball2": { "attachment": [{}] },
+        "greenparticle": { "attachment": [{}] },
+        "greenparticle2": { "attachment": [{}] },
+        "KARI_BG": { "attachment": [{}] },
+        "pinkball2": {
+          "rgba": [
+            { "time": 0.5, "color": "ffffffff" },
+            { "time": 0.8333, "color": "ffffff00" }
+          ],
+          "attachment": [{}, { "time": 0.5, "name": "pinkball" }]
+        },
+        "pinkparticle": {
+          "rgba": [
+            {
+              "time": 0.1,
+              "color": "ffffffff",
+              "curve": [
+                0.126, 1, 0.396, 1, 0.126, 1, 0.396, 1, 0.126, 1, 0.396, 1,
+                0.126, 0.41, 0.396, 0.03
+              ]
+            },
+            { "time": 0.5, "color": "ffffff00" }
+          ]
+        },
+        "pinkparticle2": {
+          "rgba": [
+            {
+              "time": 0.5,
+              "color": "ffffffff",
+              "curve": [
+                0.538, 1, 0.775, 1, 0.538, 1, 0.775, 1, 0.538, 1, 0.775, 1,
+                0.538, 0.53, 0.775, 0.02
+              ]
+            },
+            { "time": 0.8333, "color": "ffffff00" }
+          ],
+          "attachment": [{}, { "time": 0.5, "name": "pinkparticle" }]
+        },
+        "Wor_LearnedOn": { "attachment": [{}] },
+        "Wor_LearningOn": {
+          "rgba": [
+            { "time": 0.8, "color": "ffffffff" },
+            { "time": 1.1667, "color": "ffffff00" }
+          ],
+          "attachment": [{}, { "time": 0.5, "name": "Wor_LearningOn" }]
+        }
+      },
+      "bones": {
+        "pinkball": {
+          "scale": [
+            {
+              "x": 2.7,
+              "y": 2.7,
+              "curve": [0.103, 1.409, 0.363, 0.315, 0.103, 1.409, 0.363, 0.315]
+            },
+            { "time": 0.5, "x": 0.2, "y": 0.2 }
+          ]
+        },
+        "pinkball2": {
+          "scale": [
+            {
+              "time": 0.5,
+              "curve": [0.5, 1.39, 0.75, 1.5, 0.5, 1.39, 0.75, 1.5]
+            },
+            { "time": 0.8333, "x": 1.5, "y": 1.5 }
+          ]
+        },
+        "lerning": {
+          "scale": [
+            {
+              "time": 0.5,
+              "curve": [0.517, 1, 0.55, 1.2, 0.517, 1, 0.55, 1.2]
+            },
+            {
+              "time": 0.5667,
+              "x": 1.2,
+              "y": 1.2,
+              "curve": [0.592, 1.2, 0.642, 0.85, 0.592, 1.2, 0.642, 0.85]
+            },
+            {
+              "time": 0.6667,
+              "x": 0.85,
+              "y": 0.85,
+              "curve": [0.7, 0.85, 0.767, 1, 0.7, 0.85, 0.767, 1]
+            },
+            { "time": 0.8 }
+          ]
+        },
+        "pinkparticle2": {
+          "scale": [
+            {
+              "time": 0.5,
+              "x": 0.5,
+              "y": 0.5,
+              "curve": [0.517, 1.176, 0.737, 1.469, 0.517, 1.176, 0.737, 1.469]
+            },
+            { "time": 0.8333, "x": 1.5, "y": 1.5 }
+          ]
+        },
+        "pinkparticle": {
+          "scale": [
+            {
+              "x": 0.5,
+              "y": 0.5,
+              "curve": [0, 1.709, 0.415, 1.974, 0, 1.709, 0.415, 1.974]
+            },
+            { "time": 0.5, "x": 2, "y": 2 }
+          ]
+        }
+      },
+      "path": {
+        "pinkball_path_pink": {
+          "position": [
+            { "curve": [0.063, 0.62, 0.335, 0.9559] },
+            { "time": 0.5, "value": 1 }
+          ]
+        }
+      },
+      "events": [{ "name": "eBoardOff" }]
+    }
+  }
+}

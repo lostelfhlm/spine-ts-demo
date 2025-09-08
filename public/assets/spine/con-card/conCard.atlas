@@ -1,0 +1,9 @@
+conCard.png
+size:1024,512
+filter:Linear,Linear
+conCard_back
+bounds:2,2,320,400
+conCard_base
+bounds:324,2,320,400
+conCard_frame
+bounds:646,2,320,400

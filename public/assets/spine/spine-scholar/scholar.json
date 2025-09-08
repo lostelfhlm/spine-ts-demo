@@ -1,0 +1,538 @@
+{
+  "skeleton": {
+    "hash": "VJPlMMtlxGA",
+    "spine": "4.1.24",
+    "x": -989.66,
+    "y": -610.44,
+    "width": 1992.12,
+    "height": 1150.44,
+    "images": "../../../img/common/scholar/",
+    "audio": "G:/共有ドライブ/すらら_英語学習_共有/デザイン/_デザイナー作業フォルダ/はやと/Spine/img/common/scholar"
+  },
+  "bones": [
+    { "name": "root", "color": "fff200ff" },
+    {
+      "name": "all_bone",
+      "parent": "root",
+      "x": 772.45,
+      "y": -497.44,
+      "color": "fff200ff"
+    },
+    { "name": "body_all_bone", "parent": "all_bone", "color": "0dff00ff" },
+    { "name": "bag", "parent": "body_all_bone", "color": "0dff00ff" },
+    {
+      "name": "body",
+      "parent": "body_all_bone",
+      "x": -31.71,
+      "color": "0dff00ff"
+    },
+    { "name": "head_all_bone", "parent": "body_all_bone", "color": "ff55f6ff" },
+    {
+      "name": "eye",
+      "parent": "head_all_bone",
+      "x": -66.4,
+      "y": 327.03,
+      "color": "ff55f6ff"
+    },
+    {
+      "name": "eyebrow",
+      "parent": "head_all_bone",
+      "x": -58.47,
+      "y": 406.31,
+      "color": "ff55f6ff"
+    },
+    {
+      "name": "hairC",
+      "parent": "head_all_bone",
+      "x": -53.51,
+      "y": 460.81,
+      "color": "ff55f6ff"
+    },
+    {
+      "name": "hairL",
+      "parent": "head_all_bone",
+      "x": -90.18,
+      "y": 460.81,
+      "color": "ff55f6ff"
+    },
+    {
+      "name": "hairMomiage",
+      "parent": "head_all_bone",
+      "x": 89.19,
+      "y": 369.64,
+      "color": "ff55f6ff"
+    },
+    {
+      "name": "hairR",
+      "parent": "head_all_bone",
+      "x": -2.97,
+      "y": 460.81,
+      "color": "ff55f6ff"
+    },
+    {
+      "name": "head",
+      "parent": "head_all_bone",
+      "x": -27.75,
+      "y": 264.6,
+      "color": "ff55f6ff"
+    },
+    {
+      "name": "mouth",
+      "parent": "head_all_bone",
+      "x": -46.58,
+      "y": 259.64,
+      "color": "ff55f6ff"
+    },
+    {
+      "name": "neck",
+      "parent": "body_all_bone",
+      "x": -28.74,
+      "y": 211.08,
+      "color": "0dff00ff"
+    },
+    {
+      "name": "correcthead_all_bone",
+      "parent": "root",
+      "x": -760.38,
+      "y": -354.84,
+      "scaleX": -1,
+      "color": "fff200ff"
+    },
+    {
+      "name": "correcthead",
+      "parent": "correcthead_all_bone",
+      "x": 4.41,
+      "y": 2.2,
+      "color": "fff200ff"
+    },
+    {
+      "name": "pikopiko",
+      "parent": "correcthead_all_bone",
+      "x": 46.28,
+      "y": 44.08,
+      "color": "fff200ff"
+    },
+    {
+      "name": "incorrect_all_bone",
+      "parent": "root",
+      "x": -800.05,
+      "y": -343.82,
+      "scaleX": -0.65,
+      "scaleY": 0.65,
+      "color": "1eff00ff"
+    },
+    {
+      "name": "head3",
+      "parent": "incorrect_all_bone",
+      "x": 10.17,
+      "y": -10.9,
+      "color": "1eff00ff"
+    },
+    {
+      "name": "sad",
+      "parent": "incorrect_all_bone",
+      "x": 53.74,
+      "y": 26.18,
+      "color": "1eff00ff"
+    }
+  ],
+  "slots": [
+    { "name": "bag", "bone": "bag", "attachment": "bag" },
+    { "name": "body", "bone": "body", "attachment": "body" },
+    { "name": "neck", "bone": "neck", "attachment": "neck" },
+    { "name": "head", "bone": "head", "attachment": "head" },
+    {
+      "name": "hairMomiage",
+      "bone": "hairMomiage",
+      "attachment": "hairMomiage"
+    },
+    { "name": "hairR", "bone": "hairR", "attachment": "hairR" },
+    { "name": "hairL", "bone": "hairL", "attachment": "hairL" },
+    { "name": "hairC", "bone": "hairC", "attachment": "hairC" },
+    { "name": "mouth", "bone": "mouth", "attachment": "mouth" },
+    { "name": "eye", "bone": "eye", "attachment": "eye" },
+    { "name": "eyebrow", "bone": "eyebrow", "attachment": "eyebrow" },
+    { "name": "correcthead", "bone": "correcthead", "attachment": "head1" },
+    { "name": "head2", "bone": "correcthead", "attachment": "head2" },
+    { "name": "pikopiko", "bone": "pikopiko", "attachment": "pikopiko1" },
+    { "name": "pikopiko2", "bone": "pikopiko", "attachment": "pikopiko2" },
+    { "name": "head3", "bone": "head3", "attachment": "head3" },
+    { "name": "sad", "bone": "sad", "attachment": "sad" },
+    { "name": "base_withSpeechballoon_conpane", "bone": "root" }
+  ],
+  "skins": [
+    {
+      "name": "default",
+      "attachments": {
+        "bag": { "bag": { "x": 43.5, "y": 96, "width": 373, "height": 376 } },
+        "body": {
+          "body": { "x": 15.21, "y": 56, "width": 427, "height": 338 }
+        },
+        "correcthead": {
+          "head1": { "x": 42.38, "y": 77.14, "width": 365, "height": 340 }
+        },
+        "eye": { "eye": { "x": 20.4, "y": 30.97, "width": 172, "height": 82 } },
+        "eyebrow": {
+          "eyebrow": { "x": 11.47, "y": 9.19, "width": 168, "height": 15 }
+        },
+        "hairC": {
+          "hairC": { "x": 0.51, "y": -47.81, "width": 130, "height": 188 }
+        },
+        "hairL": {
+          "hairL": { "x": -38.82, "y": -34.81, "width": 86, "height": 130 }
+        },
+        "hairMomiage": {
+          "hairMomiage": { "x": -3.69, "y": -44.14, "width": 47, "height": 131 }
+        },
+        "hairR": {
+          "hairR": { "x": 36.47, "y": -33.81, "width": 107, "height": 124 }
+        },
+        "head": {
+          "head": { "x": 46.25, "y": 147.4, "width": 353, "height": 342 }
+        },
+        "head2": {
+          "head2": { "x": 42.38, "y": 77.14, "width": 365, "height": 340 }
+        },
+        "head3": {
+          "head3": { "x": 31.52, "y": 70.45, "width": 366, "height": 340 }
+        },
+        "mouth": {
+          "mouth": { "x": -0.42, "y": 9.86, "width": 64, "height": 41 }
+        },
+        "neck": {
+          "neck": { "x": 9.74, "y": -14.58, "width": 192, "height": 131 }
+        },
+        "pikopiko": {
+          "pikopiko1": { "x": 0.5, "y": 35.26, "width": 183, "height": 82 }
+        },
+        "pikopiko2": {
+          "pikopiko2": { "y": 35.26, "width": 134, "height": 92 }
+        },
+        "sad": { "sad": { "x": -11.55, "y": 34.8, "width": 79, "height": 101 } }
+      }
+    }
+  ],
+  "animations": {
+    "correct": {
+      "slots": {
+        "bag": { "attachment": [{}] },
+        "body": { "attachment": [{}] },
+        "correcthead": {
+          "attachment": [
+            {},
+            { "time": 0.3333, "name": "head1" },
+            { "time": 0.6667 },
+            { "time": 1, "name": "head1" }
+          ]
+        },
+        "eye": { "attachment": [{}] },
+        "eyebrow": { "attachment": [{}] },
+        "hairC": { "attachment": [{}] },
+        "hairL": { "attachment": [{}] },
+        "hairMomiage": { "attachment": [{}] },
+        "hairR": { "attachment": [{}] },
+        "head": { "attachment": [{}] },
+        "head2": {
+          "attachment": [
+            { "time": 0.3333 },
+            { "time": 0.6667, "name": "head2" },
+            { "time": 1 }
+          ]
+        },
+        "head3": { "attachment": [{}] },
+        "mouth": { "attachment": [{}] },
+        "neck": { "attachment": [{}] },
+        "pikopiko": {
+          "attachment": [
+            { "time": 0.3333 },
+            { "time": 0.6667, "name": "pikopiko1" },
+            { "time": 1 },
+            { "time": 1.3333, "name": "pikopiko1" }
+          ]
+        },
+        "pikopiko2": {
+          "attachment": [
+            {},
+            { "time": 0.3333, "name": "pikopiko2" },
+            { "time": 0.6667 },
+            { "time": 1, "name": "pikopiko2" },
+            { "time": 1.3333 }
+          ]
+        },
+        "sad": { "attachment": [{}] }
+      },
+      "bones": {
+        "hairC": { "rotate": [{ "value": 1.68 }] },
+        "hairR": { "rotate": [{ "value": -1.68 }] },
+        "hairL": { "rotate": [{ "value": 1.68 }] },
+        "hairMomiage": { "rotate": [{ "value": -1.5 }] },
+        "bag": { "translate": [{ "y": -1.64 }] },
+        "correcthead_all_bone": {
+          "translate": [{ "x": -39.67, "y": 11.02 }],
+          "scale": [{ "x": 0.65, "y": 0.65 }]
+        },
+        "pikopiko": {
+          "rotate": [{ "value": -20 }],
+          "translate": [{ "x": 32.47, "y": 246.79 }]
+        },
+        "correcthead": {
+          "rotate": [
+            { "curve": [0.083, 0, 0.25, -10] },
+            { "time": 0.3333, "value": -10, "curve": [0.417, -10, 0.583, 0] },
+            { "time": 0.6667, "curve": [0.75, 0, 0.917, -10] },
+            { "time": 1, "value": -10, "curve": [1.083, -10, 1.25, 0] },
+            { "time": 1.3333 }
+          ],
+          "translate": [
+            { "curve": [0.083, 0, 0.25, 0, 0.083, 0, 0.25, 30.52] },
+            {
+              "time": 0.3333,
+              "y": 30.52,
+              "curve": [0.417, 0, 0.583, 0, 0.417, 30.52, 0.583, 0]
+            },
+            {
+              "time": 0.6667,
+              "curve": [0.75, 0, 0.917, 0, 0.75, 0, 0.917, 30.52]
+            },
+            {
+              "time": 1,
+              "y": 30.52,
+              "curve": [1.083, 0, 1.25, 0, 1.083, 30.52, 1.25, 0]
+            },
+            { "time": 1.3333 }
+          ]
+        }
+      }
+    },
+    "idle": {
+      "slots": {
+        "correcthead": { "attachment": [{}] },
+        "head2": { "attachment": [{}] },
+        "head3": { "attachment": [{}] },
+        "pikopiko": { "attachment": [{}] },
+        "pikopiko2": { "attachment": [{}] },
+        "sad": { "attachment": [{}] }
+      },
+      "bones": {
+        "body_all_bone": {
+          "translate": [
+            { "curve": [0.333, 0, 1, 0, 0.333, 0, 1, -11.3] },
+            {
+              "time": 1.3333,
+              "y": -11.3,
+              "curve": [1.667, 0, 2.333, 0, 1.667, -11.3, 2.333, 0]
+            },
+            { "time": 2.6667 }
+          ],
+          "scale": [
+            { "curve": [0.333, 1, 1, 1.013, 0.333, 1, 1, 0.987] },
+            {
+              "time": 1.3333,
+              "x": 1.013,
+              "y": 0.987,
+              "curve": [1.667, 1.013, 2.333, 1, 1.667, 0.987, 2.333, 1]
+            },
+            { "time": 2.6667 }
+          ]
+        },
+        "hairC": {
+          "rotate": [
+            { "value": 1.68, "curve": [0.191, 0.75, 0.37, 0] },
+            { "time": 0.5, "curve": [0.833, 0, 1.5, 5] },
+            { "time": 1.8333, "value": 5, "curve": [2.037, 5, 2.368, 3.1] },
+            { "time": 2.6667, "value": 1.68 }
+          ]
+        },
+        "hairR": {
+          "rotate": [
+            { "value": -1.68, "curve": [0.191, -0.75, 0.37, 0] },
+            { "time": 0.5, "curve": [0.833, 0, 1.5, -5] },
+            { "time": 1.8333, "value": -5, "curve": [2.037, -5, 2.368, -3.1] },
+            { "time": 2.6667, "value": -1.68 }
+          ]
+        },
+        "hairL": {
+          "rotate": [
+            { "value": 1.68, "curve": [0.191, 0.75, 0.37, 0] },
+            { "time": 0.5, "curve": [0.833, 0, 1.5, 5] },
+            { "time": 1.8333, "value": 5, "curve": [2.037, 5, 2.368, 3.1] },
+            { "time": 2.6667, "value": 1.68 }
+          ]
+        },
+        "hairMomiage": {
+          "rotate": [
+            { "value": -1.5, "curve": [0.25, -0.75, 0.5, 0] },
+            { "time": 0.6667, "curve": [1, 0, 1.667, -3] },
+            { "time": 2, "value": -3, "curve": [2.167, -3, 2.417, -2.25] },
+            { "time": 2.6667, "value": -1.5 }
+          ]
+        },
+        "eyebrow": {
+          "translate": [
+            { "curve": [0.333, 0, 1, 0, 0.333, 0, 1, -3.82] },
+            {
+              "time": 1.3333,
+              "y": -3.82,
+              "curve": [1.667, 0, 2.333, 0, 1.667, -3.82, 2.333, 0]
+            },
+            { "time": 2.6667 }
+          ]
+        },
+        "eye": {
+          "scale": [
+            { "curve": [0.333, 1, 1, 1, 0.333, 1, 1, 0.887] },
+            {
+              "time": 1.3333,
+              "y": 0.887,
+              "curve": [1.667, 1, 2.333, 1, 1.667, 0.887, 2.333, 1]
+            },
+            { "time": 2.6667 }
+          ]
+        },
+        "mouth": {
+          "scale": [
+            { "curve": [0.333, 1, 1, 1, 0.333, 1, 1, 0.837] },
+            {
+              "time": 1.3333,
+              "y": 0.837,
+              "curve": [1.667, 1, 2.333, 1, 1.667, 0.837, 2.333, 1]
+            },
+            { "time": 2.6667 }
+          ]
+        },
+        "head_all_bone": {
+          "translate": [
+            { "curve": [0.333, 0, 1, 0, 0.333, 0, 1, -3.82] },
+            {
+              "time": 1.3333,
+              "y": -3.82,
+              "curve": [1.667, 0, 2.333, 0, 1.667, -3.82, 2.333, 0]
+            },
+            { "time": 2.6667 }
+          ]
+        },
+        "bag": {
+          "translate": [
+            {
+              "y": -1.64,
+              "curve": [0.126, 0, 0.241, 0, 0.126, -0.66, 0.241, 0]
+            },
+            {
+              "time": 0.3333,
+              "curve": [0.667, 0, 1.333, 0, 0.667, 0, 1.333, -8.9]
+            },
+            {
+              "time": 1.6667,
+              "y": -8.9,
+              "curve": [1.909, 0, 2.333, 0, 1.909, -8.9, 2.333, -4.06]
+            },
+            { "time": 2.6667, "y": -1.64 }
+          ]
+        },
+        "correcthead_all_bone": {
+          "translate": [{ "x": -39.67, "y": 11.02 }],
+          "scale": [{ "x": 0.65, "y": 0.65 }]
+        },
+        "pikopiko": {
+          "rotate": [{ "value": -20 }],
+          "translate": [{ "x": 32.47, "y": 246.79 }]
+        },
+        "correcthead": {
+          "translate": [
+            { "curve": [0.167, 0, 0.5, 0, 0.167, 0, 0.5, 47.47] },
+            {
+              "time": 0.6667,
+              "y": 47.47,
+              "curve": [0.833, 0, 1.167, 0, 0.833, 47.47, 1.167, 0]
+            },
+            { "time": 1.3333 }
+          ]
+        }
+      }
+    },
+    "incorrect": {
+      "slots": {
+        "bag": { "attachment": [{}] },
+        "body": { "attachment": [{}] },
+        "correcthead": { "attachment": [{}] },
+        "eye": { "attachment": [{}] },
+        "eyebrow": { "attachment": [{}] },
+        "hairC": { "attachment": [{}] },
+        "hairL": { "attachment": [{}] },
+        "hairMomiage": { "attachment": [{}] },
+        "hairR": { "attachment": [{}] },
+        "head": { "attachment": [{}] },
+        "head2": { "attachment": [{}] },
+        "mouth": { "attachment": [{}] },
+        "neck": { "attachment": [{}] },
+        "pikopiko": { "attachment": [{}] },
+        "pikopiko2": { "attachment": [{}] }
+      },
+      "bones": {
+        "hairC": { "rotate": [{ "value": 1.68 }] },
+        "hairR": { "rotate": [{ "value": -1.68 }] },
+        "hairL": { "rotate": [{ "value": 1.68 }] },
+        "hairMomiage": { "rotate": [{ "value": -1.5 }] },
+        "bag": { "translate": [{ "y": -1.64 }] },
+        "correcthead_all_bone": {
+          "translate": [{ "x": -39.67, "y": 11.02 }],
+          "scale": [{ "x": 0.65, "y": 0.65 }]
+        },
+        "head3": {
+          "rotate": [
+            { "curve": [0.083, 0, 0.25, 5] },
+            { "time": 0.3333, "value": 5, "curve": [0.417, 5, 0.583, 0] },
+            { "time": 0.6667, "curve": [0.75, 0, 0.917, 5] },
+            { "time": 1, "value": 5, "curve": [1.083, 5, 1.25, 0] },
+            { "time": 1.3333 }
+          ],
+          "translate": [
+            {
+              "y": 13.89,
+              "curve": [0.083, 0, 0.25, 0, 0.083, 13.89, 0.25, 6.95]
+            },
+            {
+              "time": 0.3333,
+              "y": 6.95,
+              "curve": [0.417, 0, 0.583, 0, 0.417, 6.95, 0.583, 13.89]
+            },
+            {
+              "time": 0.6667,
+              "y": 13.89,
+              "curve": [0.75, 0, 0.917, 0, 0.75, 13.89, 0.917, 6.95]
+            },
+            {
+              "time": 1,
+              "y": 6.95,
+              "curve": [1.083, 0, 1.25, 0, 1.083, 6.95, 1.25, 13.89]
+            },
+            { "time": 1.3333, "y": 13.89 }
+          ]
+        },
+        "sad": {
+          "translate": [{ "x": -56.98, "y": 263.55 }],
+          "scale": [
+            { "curve": [0.083, 1, 0.25, 1.358, 0.083, 1, 0.25, 0.653] },
+            {
+              "time": 0.3333,
+              "x": 1.358,
+              "y": 0.653,
+              "curve": [0.417, 1.358, 0.583, 1, 0.417, 0.653, 0.583, 1]
+            },
+            {
+              "time": 0.6667,
+              "curve": [0.75, 1, 0.917, 1.231, 0.75, 1, 0.917, 0.653]
+            },
+            {
+              "time": 1,
+              "x": 1.231,
+              "y": 0.653,
+              "curve": [1.083, 1.231, 1.25, 1, 1.083, 0.653, 1.25, 1]
+            },
+            { "time": 1.3333 }
+          ]
+        }
+      }
+    }
+  }
+}
