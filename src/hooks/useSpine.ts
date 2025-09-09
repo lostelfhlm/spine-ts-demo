@@ -47,7 +47,7 @@ export default function useSpine({
   const [currentAnimation, setCurrentAnimation] = useState(initialAnimation);
   const [currentSkin, setCurrentSkin] = useState(initialSkin);
   const [isOverlapping, setIsOverlapping] = useState(false);
-  const [renderMode, setRenderMode] = useState<'player' | 'webgl'>('player');
+  const [renderMode, setRenderMode] = useState<'player' | 'webgl'>('webgl');
 
   // AssetManagerの参照を保持
   const assetManagerRef = useRef<any>(null);

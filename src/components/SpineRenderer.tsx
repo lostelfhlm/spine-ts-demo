@@ -68,8 +68,14 @@ const SpineRenderer: React.FC<SpineRendererProps> = (props) => {
 
   // WebGL キャンバス側からのエラー通知（可視化不能/ロード失敗など）
   const handleWebglError = (_reason: string | Error) => {
+    // エラー情報をログに出力
+    console.error('WebGL rendering error:', _reason);
+    
     // 一度でも「見えない」と判断されたら Player に切り替える
-    if (enableAutoFallback && !forcePlayer) setForcePlayer(true);
+    if (enableAutoFallback && !forcePlayer) {
+      console.log('Falling back to Player mode due to WebGL error');
+      setForcePlayer(true);
+    }
   };
 
   // レンダリングモードインジケーターのスタイル

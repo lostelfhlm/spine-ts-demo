@@ -82,21 +82,95 @@ function cssColorToRGBA(css = '#00000000'): [number, number, number, number] {
 
 /** 現在ポーズの AABB を取得（ゼロ幅/ゼロ高は微小値で保護） */
 function getBounds(s: spine.Skeleton) {
-  const b = new spine.SkeletonBounds();
-  b.update(s, true);
-  const w = Math.max(1e-6, b.maxX - b.minX);
-  const h = Math.max(1e-6, b.maxY - b.minY);
-  const cx = b.minX + w / 2;
-  const cy = b.minY + h / 2;
-  return { w, h, cx, cy };
+  // スロットとアタッチメントを直接調べて境界を計算
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  
+  // スロットを走査して境界を計算
+  const slots = s.slots;
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i];
+    const attachment = slot.getAttachment();
+    if (!attachment) continue;
+    
+    // アタッチメントの種類に応じて境界を更新
+    if (attachment instanceof spine.RegionAttachment) {
+      const region = attachment as spine.RegionAttachment;
+      const vertices = new Float32Array(8);
+      region.computeWorldVertices(slot, vertices, 0, 2);
+      
+      for (let j = 0; j < 8; j += 2) {
+        const x = vertices[j];
+        const y = vertices[j + 1];
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    } else if (attachment instanceof spine.MeshAttachment) {
+      const mesh = attachment as spine.MeshAttachment;
+      const vertices = new Float32Array(mesh.worldVerticesLength);
+      mesh.computeWorldVertices(slot, 0, mesh.worldVerticesLength, vertices, 0, 2);
+      
+      for (let j = 0; j < vertices.length; j += 2) {
+        const x = vertices[j];
+        const y = vertices[j + 1];
+        if (isFinite(x) && isFinite(y)) {
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
+      }
+    }
+  }
+  
+  // 無効な境界値を検出（Infinity/-Infinity）
+  const hasInvalidBounds = !isFinite(minX) || !isFinite(minY) || 
+                          !isFinite(maxX) || !isFinite(maxY) ||
+                          minX > maxX || minY > maxY;
+  
+  // 無効な場合はデフォルト値を使用
+  if (hasInvalidBounds) {
+    console.warn('Invalid skeleton bounds detected, using default values');
+    minX = -100;
+    minY = -100;
+    maxX = 100;
+    maxY = 100;
+  }
+  
+  // 幅と高さを計算（最小値を保証）
+  const w = Math.max(50, maxX - minX);
+  const h = Math.max(50, maxY - minY);
+  
+  // 中心点を計算
+  const cx = minX + w / 2;
+  const cy = minY + h / 2;
+  
+  return { w, h, cx, cy, minX, minY, maxX, maxY };
 }
 
 /** カメラを CSS 幅高さ基準で等比フィット */
-function fitCamera(renderer: spine.SceneRenderer, skeleton: spine.Skeleton, cssW: number, cssH: number, padding = 1.1) {
+function fitCamera(renderer: spine.SceneRenderer, skeleton: spine.Skeleton, cssW: number, cssH: number, padding = 1.5) {
   const b = getBounds(skeleton);
-  const zoomX = (b.w * padding) / cssW;
-  const zoomY = (b.h * padding) / cssH;
-  const zoom = Math.max(zoomX, zoomY);
+  
+  // デバッグ情報を出力
+  console.log('Skeleton bounds:', { minX: b.minX, minY: b.minY, maxX: b.maxX, maxY: b.maxY, width: b.w, height: b.h, centerX: b.cx, centerY: b.cy });
+  
+  // 境界ボックスが極端に小さい場合は最小サイズを保証
+  const minSize = 100; // 最小サイズをさらに大きくする
+  const w = Math.max(minSize, b.w);
+  const h = Math.max(minSize, b.h);
+  
+  // ズーム計算（最大ズームを制限）
+  const zoomX = (w * padding) / cssW;
+  const zoomY = (h * padding) / cssH;
+  const rawZoom = Math.max(zoomX, zoomY);
+  
+  // ズームを制限（0.005〜5.0の範囲内に収める）- より広い範囲を表示
+  const zoom = Math.min(5.0, Math.max(0.005, rawZoom));
 
   const cam = renderer.camera;
   cam.zoom = zoom;
@@ -105,6 +179,9 @@ function fitCamera(renderer: spine.SceneRenderer, skeleton: spine.Skeleton, cssW
   cam.viewportHeight = cssH;
   cam.update();
   renderer.resize(spine.ResizeMode.Stretch);
+  
+  // カメラ設定をログに出力
+  console.log('Camera settings:', { rawZoom, appliedZoom: zoom, position: { x: b.cx, y: b.cy }, viewportWidth: cssW, viewportHeight: cssH });
 }
 
 /* ---------------- 本体 ---------------- */
@@ -226,11 +303,14 @@ const SpineCanvas: React.FC<SpineCanvasProps> = ({
 
       // AABB ウォッチ：極端に小さい/無限値などは「見えていない」と判断
       const b = getBounds(s);
-      const invisible = !isFinite(b.w) || !isFinite(b.h) || b.w < 1e-4 || b.h < 1e-4;
+      // 閾値を小さくして、より小さな境界ボックスも許容する
+      const invisible = !isFinite(b.w) || !isFinite(b.h) || b.w < 1e-6 || b.h < 1e-6;
       if (invisible) {
+        console.warn('Invisible skeleton detected:', { width: b.w, height: b.h });
         if (watchdogStart === 0) watchdogStart = now;
         else if (now - watchdogStart > watchdogLimitMs) {
           // 一定時間まったく可視にならない → 親に通知（フォールバック用途）
+          console.error('Skeleton remained invisible for too long, triggering fallback');
           onError?.('no-visual');
           watchdogStart = 0; // 多重通知を避ける
         }
@@ -302,16 +382,35 @@ const SpineCanvas: React.FC<SpineCanvasProps> = ({
         const { dir: atlasDir, file: atlasFile } = splitDirAndFile(atlasPath!);
         const am = new spine.AssetManager(ctx, atlasDir);
 
+        // デバッグ情報を出力
+        console.log('SpineCanvas loading assets:');
+        console.log('- Atlas dir:', atlasDir);
+        console.log('- Atlas file:', atlasFile);
+        console.log('- Skeleton path:', skeletonPath);
+
         // skeleton は atlas と同じディレクトリならファイル名、異なるならフルパスでロード
         const sLower = skeletonPath!.toLowerCase();
         const { dir: skDir, file: skFile } = splitDirAndFile(skeletonPath!);
         if (sLower.endsWith('.json')) {
-          if (skDir === atlasDir) am.loadText(skFile); else am.loadText(skeletonPath!);
+          if (skDir === atlasDir) {
+            console.log('- Loading JSON skeleton by filename:', skFile);
+            am.loadText(skFile);
+          } else {
+            console.log('- Loading JSON skeleton by full path:', skeletonPath);
+            am.loadText(skeletonPath!);
+          }
         } else {
-          if (skDir === atlasDir) am.loadBinary(skFile); else am.loadBinary(skeletonPath!);
+          if (skDir === atlasDir) {
+            console.log('- Loading binary skeleton by filename:', skFile);
+            am.loadBinary(skFile);
+          } else {
+            console.log('- Loading binary skeleton by full path:', skeletonPath);
+            am.loadBinary(skeletonPath!);
+          }
         }
 
         // atlas はファイル名でロード（内部 PNG は atlasDir を前置して解決される）
+        console.log('- Loading atlas:', atlasFile);
         am.loadTextureAtlas(atlasFile);
 
         await waitAssets(am, 20000);
