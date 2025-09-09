@@ -12,6 +12,13 @@ interface SpineObject {
   skeleton?: string;
   atlas?: string;
   renderMode?: 'player' | 'webgl';
+  loop?: boolean;
+  showAnimationEndMessage?: boolean;
+}
+
+interface SpineObjectOptions {
+  loop?: boolean;
+  showAnimationEndMessage?: boolean;
 }
 
 interface UseSpineOptions {
@@ -154,7 +161,7 @@ export default function useSpine({
   }, [skeletonPath, atlasPath]);
 
   // Spineオブジェクトの生成
-  const createSpineObject = useCallback((count = 1) => {
+  const createSpineObject = useCallback((count = 1, options?: SpineObjectOptions) => {
     // アセットが読み込まれていない場合は処理しない
     if (isLoading || animations.length === 0) {
       console.warn('Cannot create Spine objects while assets are loading');
@@ -186,6 +193,8 @@ export default function useSpine({
         skeleton: skeletonPath,
         atlas: atlasPath,
         renderMode,
+        loop: options?.loop,
+        showAnimationEndMessage: options?.showAnimationEndMessage,
       };
       
       setSpineObjects((prev) => isOverlapping ? [...prev, newObject] : [newObject]);
@@ -223,6 +232,8 @@ export default function useSpine({
             skeleton: skeletonPath,
             atlas: atlasPath,
             renderMode,
+            loop: options?.loop,
+            showAnimationEndMessage: options?.showAnimationEndMessage,
           });
         }
         

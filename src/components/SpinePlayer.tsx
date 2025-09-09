@@ -13,6 +13,7 @@ interface SpinePlayerProps {
   height?: number;
   backgroundColor?: string;
   className?: string;
+  onAnimationComplete?: () => void;
 }
 
 /**
@@ -30,6 +31,7 @@ export default function SpinePlayer({
   height = 600,
   backgroundColor = '#00000000',
   className = '',
+  onAnimationComplete,
 }: SpinePlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -102,6 +104,18 @@ export default function SpinePlayer({
                   console.warn(`Animation "${animation}" does not exist, using default animation instead`);
                   const defaultAnim = player.skeleton.data.animations[0].name;
                   player.setAnimation(defaultAnim);
+                }
+                
+                // アニメーション終了検出のためのリスナーを追加
+                if (!loop && onAnimationComplete) {
+                  player.animationState.addListener({
+                    complete: (entry: any) => {
+                      // アニメーションが完了したときに通知
+                      if (entry.trackIndex === 0) {
+                        onAnimationComplete();
+                      }
+                    }
+                  });
                 }
                 
                 // スキンの設定

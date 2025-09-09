@@ -11,6 +11,7 @@ interface ControlPanelProps {
   onDeleteAll?: () => void;
   onToggleOverlap?: () => void;
   onCreateMany?: (count: number) => void;
+  onCreateWithEndDetection?: () => void; // アニメーション終了検出付きの生成
   animations?: string[];
   skins?: string[];
   renderMode?: 'player' | 'webgl';
@@ -24,7 +25,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onCreateSpine,
   onDeleteSpine,
   onDeleteAll,
+  onToggleOverlap,
   onCreateMany,
+  onCreateWithEndDetection,
   animations = [],
   skins = [],
   renderMode = 'webgl',
@@ -243,6 +246,16 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             onClick={() => onDeleteAll()}
           >
             全削除
+          </button>
+        )}
+        
+        {onCreateWithEndDetection && (
+          <button
+            className="p-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            onClick={() => onCreateWithEndDetection()}
+            title="アニメーション終了を検出し、メッセージを表示するSpineを生成します"
+          >
+            アニメーション終了検出付き生成
           </button>
         )}
       </div>

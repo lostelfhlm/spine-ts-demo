@@ -1,364 +1,418 @@
 'use client';
 
-/**
- * SpineCanvas（Spine 4.2 対応・単一WebGLキャンバスで複数Skeletonを描画）
- * - 方式1: items[] を渡すと単一Canvasに全て描画（コンテキスト数=1）
- * - 単体props（skeletonPath/atlasPath...）でも従来どおり動作（下位互換）
- * - 4.2物理API：updateWorldTransform(physics) は常に指定（フォールバック付き）
- * - 非同期ロード＋キャンセル／DPR／リサイズ／GLコンテキストロスト復帰
- * - AABB（Region/Meshの世界頂点）でセル中心フィット（BoundingBox不要）
- */
-
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as spine from '@esotericsoftware/spine-webgl';
 
-/** 単体用プロップス */
-type SingleItemProps = {
-  skeletonPath?: string;  // .json or .skel
-  atlasPath?: string;     // .atlas
-  animation?: string;
-  skin?: string;
-  loop?: boolean;
-};
-
-/** 複数描画用の1要素 */
-type MultiItem = {
-  id?: string;
-  skeletonPath: string;
-  atlasPath: string;
-  animation?: string;
-  skin?: string;
-  loop?: boolean;
-};
-
-type MultiItemsProps = {
-  /** 指定すると単一Canvasに items を全て描画（単体propsより優先） */
-  items?: MultiItem[];
-};
-
-type CommonProps = {
+export interface SpineCanvasProps {
+  // --- 表示サイズ（CSS ピクセル） ---
   width?: number;
   height?: number;
   className?: string;
+
+  // --- アセットパス ---
+  skeletonPath?: string; // .json または .skel
+  atlasPath?: string;    // .atlas
+
+  // --- 再生設定 ---
+  animation?: string;
+  skin?: string;
+  loop?: boolean;
+
+  // --- 描画設定 ---
   premultipliedAlpha?: boolean;
-  backgroundColor?: string;
-};
+  backgroundColor?: string; // 例: '#ffffff'
 
-export type SpineCanvasProps = CommonProps & SingleItemProps & MultiItemsProps;
-
-/** 4.2 物理列挙のフォールバック（バンドル差で Physics が undefined でも数値で代替） */
-const PHYSICS_UPDATE: spine.Physics =
-  ((spine as any)?.Physics?.update ?? 2) as spine.Physics; // 0:none, 1:pose, 2:update
-
-/** 内部ランタイム */
-type Runtime = {
-  skeleton: spine.Skeleton;
-  state: spine.AnimationState;
-};
-
-const PADDING_RATIO = 0.9;
-
-/** path を dir と file に分解 */
-function splitDirAndFile(path: string) {
-  const idx = path.lastIndexOf('/');
-  if (idx === -1) return { dir: '', file: path };
-  return { dir: path.substring(0, idx + 1), file: path.substring(idx + 1) };
+  // --- エラー通知（親がフォールバック等に使う） ---
+  //     ・アセット失敗 / コンテキスト異常 / 可視領域が取れない 等で呼ぶ
+  onError?: (reason: string | Error) => void;
+  
+  // --- アニメーション完了通知 ---
+  onAnimationComplete?: () => void;
 }
 
-/** 非ブロッキングで AssetManager の完了を待つ */
-function waitForAssetsComplete(am: spine.AssetManager, timeoutMs: number): Promise<void> {
+/** Spine 4.2: Physics.update が存在する環境のみ引数として渡す（undefined ならランタイム既定） */
+const PHYSICS_UPDATE: any = (spine as any)?.Physics?.update ?? undefined;
+
+/* ---------------- ユーティリティ ---------------- */
+
+/** パスをディレクトリとファイル名に分割 */
+function splitDirAndFile(path: string) {
+  const i = path.lastIndexOf('/');
+  if (i === -1) return { dir: '', file: path };
+  return { dir: path.slice(0, i + 1), file: path.slice(i + 1) };
+}
+
+/** AssetManager の完了待ち（エラーを拾って reject） */
+function waitAssets(am: spine.AssetManager, timeoutMs = 20000) {
   const start = performance.now();
-  return new Promise((resolve, reject) => {
-    function tick() {
+  return new Promise<void>((resolve, reject) => {
+    const step = () => {
       if (am.isLoadingComplete()) {
-        const anyAm = am as any;
-        if (anyAm && Array.isArray(anyAm.errors) && anyAm.errors.length > 0) {
-          reject(new Error('Spine assets failed: ' + anyAm.errors.map((e: any) => e?.message || String(e)).join(', ')));
+        const any = am as any;
+        if (any?.errors?.length) {
+          reject(
+            new Error(
+              'Spine assets failed: ' +
+                any.errors.map((e: any) => e?.message || String(e)).join(', ')
+            )
+          );
           return;
         }
         resolve(); return;
       }
       if (performance.now() - start > timeoutMs) {
-        reject(new Error('Spine assets loading timeout.')); return;
+        reject(new Error('Spine assets loading timeout.'));
+        return;
       }
-      requestAnimationFrame(tick);
-    }
-    tick();
+      requestAnimationFrame(step);
+    };
+    step();
   });
 }
 
-/** 現在ポーズのAABB（BoundingBox無しでもRegion/Meshから推定） */
-function computeAABB(skeleton: spine.Skeleton) {
-  let minX = Number.POSITIVE_INFINITY, minY = Number.POSITIVE_INFINITY;
-  let maxX = Number.NEGATIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY;
-  const temp = new Float32Array(8 * 3);
-
-  for (let i = 0; i < skeleton.slots.length; i++) {
-    const slot = skeleton.slots[i];
-    const att = slot.getAttachment();
-    if (!att) continue;
-
-    if (att instanceof spine.RegionAttachment) {
-      // 4.2: RegionAttachment.computeWorldVertices は Slot を受け取る
-      (att as any).computeWorldVertices(slot, temp, 0, 2);
-      for (let v = 0; v < 8; v += 2) {
-        const x = temp[v], y = temp[v + 1];
-        if (x < minX) minX = x; if (y < minY) minY = y;
-        if (x > maxX) maxX = x; if (y > maxY) maxY = y;
-      }
-    } else if (att instanceof spine.MeshAttachment) {
-      const world = new Float32Array(att.worldVerticesLength);
-      att.computeWorldVertices(slot, 0, att.worldVerticesLength, world, 0, 2);
-      for (let v = 0; v < world.length; v += 2) {
-        const x = world[v], y = world[v + 1];
-        if (x < minX) minX = x; if (y < minY) minY = y;
-        if (x > maxX) maxX = x; if (y > maxY) maxY = y;
-      }
-    }
-  }
-  if (minX === Number.POSITIVE_INFINITY) { minX = 0; minY = 0; maxX = 1; maxY = 1; }
-  return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+/** CSS 色を RGBA(0..1) に変換 */
+function cssColorToRGBA(css = '#00000000'): [number, number, number, number] {
+  const c = document.createElement('canvas');
+  const g = c.getContext('2d')!;
+  g.fillStyle = css;
+  g.fillRect(0, 0, 1, 1);
+  const d = g.getImageData(0, 0, 1, 1).data;
+  return [d[0] / 255, d[1] / 255, d[2] / 255, d[3] / 255];
 }
 
-/** 単一 Skeleton のロード（json / skel 自動判定） */
-async function loadOneSkeleton(
-  context: spine.ManagedWebGLRenderingContext,
-  item: MultiItem,
-  timeoutMs = 20000
-): Promise<Runtime> {
-  const { dir: atlasDir, file: atlasFile } = splitDirAndFile(item.atlasPath);
-  const am = new spine.AssetManager(context, atlasDir);
-
-  const lower = item.skeletonPath.toLowerCase();
-  const { dir: skelDir, file: skelFile } = splitDirAndFile(item.skeletonPath);
-  if (lower.endsWith('.json')) {
-    if (skelDir !== atlasDir) am.loadText(item.skeletonPath); else am.loadText(skelFile);
-  } else {
-    if (skelDir !== atlasDir) am.loadBinary(item.skeletonPath); else am.loadBinary(skelFile);
-  }
-  am.loadTextureAtlas(atlasFile);
-
-  await waitForAssetsComplete(am, timeoutMs);
-
-  const atlas = am.get(atlasFile) as spine.TextureAtlas;
-  const loader = new spine.AtlasAttachmentLoader(atlas);
-
-  let data: spine.SkeletonData;
-  if (lower.endsWith('.json')) {
-    const json = new spine.SkeletonJson(loader);
-    const raw = am.get(item.skeletonPath) ?? am.get(skelFile);
-    data = json.readSkeletonData(raw as string);
-  } else {
-    const bin = new spine.SkeletonBinary(loader);
-    const raw = am.get(item.skeletonPath) ?? am.get(skelFile);
-    data = bin.readSkeletonData(new Uint8Array(raw as ArrayBuffer));
-  }
-
-  const skeleton = new spine.Skeleton(data);
-  skeleton.setToSetupPose();
-
-  // skin
-  const skinName = item.skin ?? (data.defaultSkin?.name ?? undefined);
-  if (skinName && data.findSkin(skinName)) skeleton.setSkinByName(skinName);
-  else if (data.defaultSkin) skeleton.setSkin(data.defaultSkin);
-
-  skeleton.updateWorldTransform(PHYSICS_UPDATE);
-
-  const stateData = new spine.AnimationStateData(data);
-  const state = new spine.AnimationState(stateData);
-
-  // animation
-  const animName = item.animation ?? (data.animations[0]?.name ?? undefined);
-  if (animName && data.findAnimation(animName)) {
-    state.setAnimation(0, animName, item.loop ?? true);
-  }
-
-  return { skeleton, state };
+/** 現在ポーズの AABB を取得（ゼロ幅/ゼロ高は微小値で保護） */
+function getBounds(s: spine.Skeleton) {
+  const b = new spine.SkeletonBounds();
+  b.update(s, true);
+  const w = Math.max(1e-6, b.maxX - b.minX);
+  const h = Math.max(1e-6, b.maxY - b.minY);
+  const cx = b.minX + w / 2;
+  const cy = b.minY + h / 2;
+  return { w, h, cx, cy };
 }
 
-/** グリッドにレイアウト（y軸は上向き） */
-function layoutGrid(runtimes: Runtime[], W: number, H: number) {
-  if (runtimes.length === 0) return;
-  const cols = Math.ceil(Math.sqrt(runtimes.length));
-  const rows = Math.ceil(runtimes.length / cols);
-  const cellW = W / cols, cellH = H / rows;
+/** カメラを CSS 幅高さ基準で等比フィット */
+function fitCamera(renderer: spine.SceneRenderer, skeleton: spine.Skeleton, cssW: number, cssH: number, padding = 1.1) {
+  const b = getBounds(skeleton);
+  const zoomX = (b.w * padding) / cssW;
+  const zoomY = (b.h * padding) / cssH;
+  const zoom = Math.max(zoomX, zoomY);
 
-  for (let i = 0; i < runtimes.length; i++) {
-    const rt = runtimes[i];
-    const cx = i % cols, cy = Math.floor(i / cols);
-
-    const targetCx = cx * cellW + cellW / 2;
-    const targetCy = cy * cellH + cellH / 2; // y上向きのまま
-
-    // 現在ポーズのAABB
-    const aabb = computeAABB(rt.skeleton);
-    const bw = Math.max(aabb.width, 1), bh = Math.max(aabb.height, 1);
-    const scale = Math.min(cellW / bw, cellH / bh) * PADDING_RATIO;
-
-    rt.skeleton.scaleX = scale;
-    rt.skeleton.scaleY = scale;
-
-    const centerX = aabb.minX + bw / 2;
-    const centerY = aabb.minY + bh / 2;
-
-    rt.skeleton.x = targetCx - centerX * scale;
-    rt.skeleton.y = targetCy - centerY * scale;
-  }
+  const cam = renderer.camera;
+  cam.zoom = zoom;
+  cam.position.set(b.cx, b.cy, 0);
+  cam.viewportWidth = cssW;
+  cam.viewportHeight = cssH;
+  cam.update();
+  renderer.resize(spine.ResizeMode.Stretch);
 }
+
+/* ---------------- 本体 ---------------- */
 
 const SpineCanvas: React.FC<SpineCanvasProps> = ({
   width = 400,
   height = 400,
   className,
+  skeletonPath,
+  atlasPath,
+  animation,
+  skin,
+  loop = true,
   premultipliedAlpha = true,
-  backgroundColor = '#00000000',
-  // 単体
-  skeletonPath, atlasPath, animation, skin, loop = true,
-  // 複数
-  items,
+  backgroundColor = '#ffffff',
+  onError,
+  onAnimationComplete,
 }) => {
-  // items 未指定なら単体を items 化（下位互換）
-  const normalized: MultiItem[] | null = useMemo(() => {
-    if (items && items.length) return items;
-    if (skeletonPath && atlasPath) return [{ skeletonPath, atlasPath, animation, skin, loop }];
-    return null;
-  }, [items, skeletonPath, atlasPath, animation, skin, loop]);
-
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  // --- Canvas/Renderer/State の参照 ---
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<spine.ManagedWebGLRenderingContext | null>(null);
   const rendererRef = useRef<spine.SceneRenderer | null>(null);
+  const skeletonRef = useRef<spine.Skeleton | null>(null);
+  const stateRef = useRef<spine.AnimationState | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  const [runtimes, setRuntimes] = useState<Runtime[]>([]);
-  const [reloadKey, setReloadKey] = useState(0);
+  // --- レイアウト再調整フラグ（数フレームだけ再フィット） ---
   const relayoutFramesRef = useRef(0);
 
-  // 初期化 / 破棄
+  // --- DPR とロード可否 ---
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  const canLoad = useMemo(() => !!skeletonPath && !!atlasPath, [skeletonPath, atlasPath]);
+
+  // --- WebGL コンテキスト復旧用キー ---
+  const [glKey, setGlKey] = useState(0);
+
+  /* ========== 1) WebGL 初期化 / 破棄 ========== */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // CSS サイズと物理解像度の設定
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = Math.max(1, Math.floor(width * dpr));
+    canvas.height = Math.max(1, Math.floor(height * dpr));
+
+    // WebGL 管理コンテキスト
+    const ctx = new spine.ManagedWebGLRenderingContext(canvas, {
+      alpha: true,
+      premultipliedAlpha,
+      antialias: true,
+      preserveDrawingBuffer: false,
+      stencil: false,
+      depth: false,
+    });
+    const gl = ctx.gl as WebGLRenderingContext;
+
+    // SceneRenderer とカメラ初期化
+    const renderer = new spine.SceneRenderer(canvas, ctx);
+    renderer.camera.position.set(0, 0, 0);
+    renderer.camera.viewportWidth = width;  // CSS 基準
+    renderer.camera.viewportHeight = height;
+    renderer.camera.update();
+    renderer.resize(spine.ResizeMode.Stretch);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+
+    // クリア色
+    const clear = cssColorToRGBA(backgroundColor);
+
+    // コンテキストロスト/復旧
+    const onLost = (e: Event) => {
+      e.preventDefault();
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+    const onRestored = () => setGlKey((k) => k + 1);
+
+    canvas.addEventListener('webglcontextlost', onLost as EventListener, false);
+    canvas.addEventListener('webglcontextrestored', onRestored as EventListener, false);
+
+    ctxRef.current = ctx;
+    rendererRef.current = renderer;
+
+    // 描画ループ（ウォッチドッグ付き）
+    let last = performance.now();
+    let watchdogStart = 0;               // 可視 AABB が取れない期間の計測
+    const watchdogLimitMs = 600;         // 0.6秒連続で「見えない」なら onError
+
+    const loopFrame = (now: number) => {
+      const r = rendererRef.current;
+      const s = skeletonRef.current;
+      const st = stateRef.current;
+      const c = canvasRef.current;
+      const context = ctxRef.current;
+
+      if (!r || !s || !st || !c || !context) {
+        rafRef.current = requestAnimationFrame(loopFrame);
+        return;
+      }
+
+      const gl2 = context.gl as WebGLRenderingContext;
+      const dt = (now - last) / 1000;
+      last = now;
+
+      gl2.clearColor(clear[0], clear[1], clear[2], clear[3]);
+      gl2.clear(gl2.COLOR_BUFFER_BIT);
+
+      // 更新・適用・ワールド変換
+      s.update(dt);
+      st.update(dt);
+      st.apply(s);
+      (s as any).updateWorldTransform(PHYSICS_UPDATE);
+
+      // 初期数フレームはカメラ再フィット
+      if (relayoutFramesRef.current > 0) {
+        fitCamera(r, s, width, height);
+        relayoutFramesRef.current--;
+      }
+
+      // AABB ウォッチ：極端に小さい/無限値などは「見えていない」と判断
+      const b = getBounds(s);
+      const invisible = !isFinite(b.w) || !isFinite(b.h) || b.w < 1e-4 || b.h < 1e-4;
+      if (invisible) {
+        if (watchdogStart === 0) watchdogStart = now;
+        else if (now - watchdogStart > watchdogLimitMs) {
+          // 一定時間まったく可視にならない → 親に通知（フォールバック用途）
+          onError?.('no-visual');
+          watchdogStart = 0; // 多重通知を避ける
+        }
+      } else {
+        watchdogStart = 0;
+      }
+
+      r.begin();
+      r.drawSkeleton(s, premultipliedAlpha);
+      r.end();
+
+      rafRef.current = requestAnimationFrame(loopFrame);
+    };
+
+    rafRef.current = requestAnimationFrame(loopFrame);
+
+    // クリーンアップ
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      rendererRef.current = null;
+      skeletonRef.current = null;
+      stateRef.current = null;
+      try { (ctx as any)?.dispose?.(); } catch {}
+      ctxRef.current = null;
+
+      canvas.removeEventListener('webglcontextlost', onLost as EventListener);
+      canvas.removeEventListener('webglcontextrestored', onRestored as EventListener);
+    };
+  }, [width, height, dpr, premultipliedAlpha, backgroundColor, glKey, onError]);
+
+  /* ========== 2) リサイズ時の再適合 ========== */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const r = rendererRef.current;
+    const ctx = ctxRef.current;
+    if (!canvas || !r || !ctx) return;
 
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
     canvas.width = Math.max(1, Math.floor(width * dpr));
     canvas.height = Math.max(1, Math.floor(height * dpr));
 
-    const context = new spine.ManagedWebGLRenderingContext(canvas, {
-      alpha: true, premultipliedAlpha, antialias: true, preserveDrawingBuffer: false, stencil: false, depth: false,
-    });
-    const gl = context.gl;
-    const renderer = new spine.SceneRenderer(canvas, context);
-    renderer.camera.position.set(canvas.width / 2, canvas.height / 2, 0);
-    renderer.camera.viewportWidth = canvas.width;
-    renderer.camera.viewportHeight = canvas.height;
-    renderer.resize(spine.ResizeMode.Stretch);
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    (ctx.gl as WebGLRenderingContext).viewport(0, 0, canvas.width, canvas.height);
 
-    const parseBG = () => {
-      try {
-        const c = document.createElement('canvas'); const g = c.getContext('2d');
-        if (!g) return [0,0,0,0] as [number,number,number,number];
-        g.fillStyle = backgroundColor ?? '#00000000'; g.fillRect(0,0,1,1);
-        const d = g.getImageData(0,0,1,1).data; return [d[0]/255, d[1]/255, d[2]/255, d[3]/255] as [number,number,number,number];
-      } catch { return [0,0,0,0] as [number,number,number,number]; }
-    };
-    const clearColor = parseBG();
-
-    const onLost = (e: Event) => { e.preventDefault(); if (rafRef.current!=null) cancelAnimationFrame(rafRef.current); };
-    const onRestored = () => { setReloadKey((k)=>k+1); };
-    canvas.addEventListener('webglcontextlost', onLost as EventListener, false);
-    canvas.addEventListener('webglcontextrestored', onRestored as EventListener, false);
-
-    ctxRef.current = context;
-    rendererRef.current = renderer;
-
-    // 描画ループ
-    let last = performance.now();
-    const frame = (now: number) => {
-      const ctx = ctxRef.current, r = rendererRef.current, cvs = canvasRef.current;
-      if (!ctx || !r || !cvs) { rafRef.current = requestAnimationFrame(frame); return; }
-      const gl = ctx.gl as any;
-      if (gl.isContextLost && gl.isContextLost()) { rafRef.current = requestAnimationFrame(frame); return; }
-
-      const dt = (now - last) / 1000; last = now;
-
-      // クリア
-      (ctx.gl as WebGLRenderingContext).clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-      (ctx.gl as WebGLRenderingContext).clear((ctx.gl as WebGLRenderingContext).COLOR_BUFFER_BIT);
-
-      // 初期数フレームはフィット/レイアウトを安定化
-      if (relayoutFramesRef.current > 0) {
-        layoutGrid(runtimes, cvs.width, cvs.height);
-        relayoutFramesRef.current -= 1;
-      }
-
-      r.begin();
-      for (const rt of runtimes) {
-        rt.skeleton.update(dt);
-        rt.state.update(dt);
-        rt.state.apply(rt.skeleton);
-        rt.skeleton.updateWorldTransform(PHYSICS_UPDATE);
-        r.drawSkeleton(rt.skeleton, premultipliedAlpha);
-      }
-      r.end();
-
-      rafRef.current = requestAnimationFrame(frame);
-    };
-    rafRef.current = requestAnimationFrame(frame);
-
-    return () => {
-      if (rafRef.current!=null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-      rendererRef.current = null;
-      try { (context as any)?.dispose?.(); } catch {}
-      ctxRef.current = null;
-      canvas.removeEventListener('webglcontextlost', onLost as EventListener);
-      canvas.removeEventListener('webglcontextrestored', onRestored as EventListener);
-    };
-  }, [width, height, dpr, premultipliedAlpha, backgroundColor, reloadKey]);
-
-  // リサイズでカメラ/ビューポート更新
-  useEffect(() => {
-    const canvas = canvasRef.current; const ctx = ctxRef.current; const r = rendererRef.current;
-    if (!canvas || !ctx || !r) return;
-    canvas.style.width = `${width}px`; canvas.style.height = `${height}px`;
-    canvas.width = Math.max(1, Math.floor(width * dpr)); canvas.height = Math.max(1, Math.floor(height * dpr));
-    r.camera.position.set(canvas.width / 2, canvas.height / 2, 0);
-    r.camera.viewportWidth = canvas.width; r.camera.viewportHeight = canvas.height;
+    r.camera.viewportWidth = width;
+    r.camera.viewportHeight = height;
+    r.camera.update();
     r.resize(spine.ResizeMode.Stretch);
-    ctx.gl.viewport(0, 0, canvas.width, canvas.height);
-    layoutGrid(runtimes, canvas.width, canvas.height);
-  }, [width, height, dpr, runtimes.length]);
 
-  // 非同期ロード（順次）＋ キャンセル保護
+    if (skeletonRef.current) {
+      fitCamera(r, skeletonRef.current, width, height);
+      relayoutFramesRef.current = 3;
+    }
+  }, [width, height, dpr, glKey]);
+
+  /* ========== 3) アセット読み込み（atlas ディレクトリを pathPrefix に設定） ========== */
   useEffect(() => {
-    const ctx = ctxRef.current; const canvas = canvasRef.current;
-    if (!ctx || !canvas) return;
-
-    setRuntimes([]);
-    if (!normalized || normalized.length === 0) return;
+    if (!canLoad) return;
+    const ctx = ctxRef.current;
+    const renderer = rendererRef.current;
+    if (!ctx || !renderer) return;
 
     let cancelled = false;
+
     (async () => {
       try {
-        const loaded: Runtime[] = [];
-        for (const it of normalized) {
-          const rt = await loadOneSkeleton(ctx, it, 20000);
-          if (cancelled) return;
-          loaded.push(rt);
+        // ★ atlas のあるディレクトリを前提に AssetManager を初期化
+        const { dir: atlasDir, file: atlasFile } = splitDirAndFile(atlasPath!);
+        const am = new spine.AssetManager(ctx, atlasDir);
+
+        // skeleton は atlas と同じディレクトリならファイル名、異なるならフルパスでロード
+        const sLower = skeletonPath!.toLowerCase();
+        const { dir: skDir, file: skFile } = splitDirAndFile(skeletonPath!);
+        if (sLower.endsWith('.json')) {
+          if (skDir === atlasDir) am.loadText(skFile); else am.loadText(skeletonPath!);
+        } else {
+          if (skDir === atlasDir) am.loadBinary(skFile); else am.loadBinary(skeletonPath!);
         }
-        // レイアウト
-        layoutGrid(loaded, canvas.width, canvas.height);
-        relayoutFramesRef.current = 10; // 最初の数フレームは姿勢変化に追従
-        if (!cancelled) setRuntimes(loaded);
+
+        // atlas はファイル名でロード（内部 PNG は atlasDir を前置して解決される）
+        am.loadTextureAtlas(atlasFile);
+
+        await waitAssets(am, 20000);
+        if (cancelled) return;
+
+        // データ構築
+        const atlas = am.get(atlasFile) as spine.TextureAtlas;
+        const loader = new spine.AtlasAttachmentLoader(atlas);
+
+        let data: spine.SkeletonData;
+        if (sLower.endsWith('.json')) {
+          const json = new spine.SkeletonJson(loader);
+          const raw = am.get(skDir === atlasDir ? skFile : skeletonPath!) as string;
+          data = json.readSkeletonData(raw);
+        } else {
+          const bin = new spine.SkeletonBinary(loader);
+          const raw = am.get(skDir === atlasDir ? skFile : skeletonPath!) as ArrayBuffer;
+          data = bin.readSkeletonData(new Uint8Array(raw));
+        }
+
+        const skeleton = new spine.Skeleton(data);
+        skeleton.setToSetupPose();
+
+        // skin 設定（存在確認つき）
+        const skinName = skin ?? data.defaultSkin?.name;
+        if (skinName && data.findSkin(skinName)) skeleton.setSkinByName(skinName);
+        else if (data.defaultSkin) skeleton.setSkin(data.defaultSkin);
+
+        // state
+        const stateData = new spine.AnimationStateData(data);
+        const state = new spine.AnimationState(stateData);
+
+        // animation（存在確認つき）
+        const animName = animation ?? data.animations[0]?.name;
+        if (animName && data.findAnimation(animName)) {
+          state.setAnimation(0, animName, loop ?? true);
+          
+          // アニメーション完了イベントリスナーを追加
+          if (!loop && onAnimationComplete) {
+            state.addListener({
+              complete: (entry) => {
+                // アニメーションが完了したときに通知
+                if (entry.trackIndex === 0 && entry.animation && entry.animation.name === animName) {
+                  onAnimationComplete();
+                }
+              }
+            });
+          }
+        }
+
+        // 初回は 0 秒更新→適用→ワールド変換→カメラフィット
+        state.update(0);
+        state.apply(skeleton);
+        (skeleton as any).updateWorldTransform(PHYSICS_UPDATE);
+
+        fitCamera(renderer, skeleton, width, height);
+        relayoutFramesRef.current = 3;
+
+        if (!cancelled) {
+          skeletonRef.current = skeleton;
+          stateRef.current = state;
+        }
       } catch (e) {
-        if (!cancelled) console.error(e);
+        // ロード/パース失敗 → 親へ通知（フォールバック用途）
+        if (!cancelled) onError?.(e as Error);
       }
     })();
 
     return () => { cancelled = true; };
-  }, [JSON.stringify(normalized)]);
+  }, [canLoad, skeletonPath, atlasPath, animation, skin, loop, width, height, onError]);
+
+  /* ========== 4) skin 切替 ========== */
+  useEffect(() => {
+    const s = skeletonRef.current;
+    const r = rendererRef.current;
+    if (!s || !r || !skin) return;
+    if (s.data.findSkin(skin)) {
+      s.setSkinByName(skin);
+      s.setSlotsToSetupPose();
+      (s as any).updateWorldTransform(PHYSICS_UPDATE);
+      fitCamera(r, s, width, height);
+      relayoutFramesRef.current = 3;
+    }
+  }, [skin, width, height]);
+
+  /* ========== 5) アニメ切替 ========== */
+  useEffect(() => {
+    const s = skeletonRef.current;
+    const st = stateRef.current;
+    const r = rendererRef.current;
+    if (!s || !st || !animation || !r) return;
+
+    if (s.data.findAnimation(animation)) {
+      st.setAnimation(0, animation, loop ?? true);
+      st.update(0);
+      st.apply(s);
+      (s as any).updateWorldTransform(PHYSICS_UPDATE);
+      fitCamera(r, s, width, height);
+      relayoutFramesRef.current = 3;
+    }
+  }, [animation, loop, width, height]);
 
   return (
     <canvas
