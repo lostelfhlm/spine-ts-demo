@@ -85,6 +85,7 @@ export default function SpinePlayer({
             alpha: backgroundColor.endsWith('00'),
             showControls: false, // コントロールを非表示に
             preserveDrawingBuffer: true,
+            showLoading: false,
             // controlBonesプロパティは文字列配列が必要
             controlBones: [],
             viewport: {
